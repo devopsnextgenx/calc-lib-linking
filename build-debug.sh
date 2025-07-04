@@ -47,7 +47,6 @@ if [ -f "$CALCX" ]; then
     echo "-------------------------------------------"
     echo "Executable $CALCX executed successfully."
     echo "Build and execution completed successfully."
-    ls -ltr "$CALCX"
 else
     echo "Executable $CALCX not found. Build may have failed."
 fi
