@@ -87,7 +87,7 @@ int main(int argc, char *argv[]) {
             int mouse_pressed = 0;
             int quit = 0;
             int circle_placed = 0;
-            Circle circle = {320, 240, 60}; // C-style struct initialization
+            Circle circle = {600, 400, 60}; // C-style struct initialization
 
             SDL_Surface* surface = SDL_GetWindowSurface(window);
             while (!quit) {
