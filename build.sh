@@ -67,7 +67,12 @@ cmake --build .
 echo "-------------------------------------------"
 
 cd ../..
+#  for windows use the absolute path to the executable ends with .exe
+OSX=$(uname -s)
 CALCX="build/$BUILD_TYPE/calcx"
+if [[ "$OSX" != "Linux" ]]; then
+    CALCX="build/$BUILD_TYPE/Debug/calcx.exe"
+fi
 
 if [[ -f "$CALCX" && "$BUILD_EXE" == "ON" && "$TEST" == "ON" ]]; then
     echo "Running $CALCX"

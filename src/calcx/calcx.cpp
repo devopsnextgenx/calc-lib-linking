@@ -1,7 +1,12 @@
 #include<stdio.h>
 #include<math.h>
+#include<string.h>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_surface.h>
+#include <SDL3/SDL_hints.h>
+#ifdef __linux__
+#include <stdlib.h>  // For setenv on Linux
+#endif
 #include "calc/calc.h"
 #include "graphics/graphics.h"
 
@@ -61,8 +66,36 @@ int main(int argc, char *argv[]) {
         return 0;
     }
     if (argc > 1 && strcmp(argv[1], "--graphics") == 0) {
-        SDL_ClearError();
         printf("Initializing SDL for graphics...\n");
+        
+        // Clear any previous errors
+        SDL_ClearError();
+        
+        // Set platform-specific video driver
+        #ifdef _WIN32
+        // Windows: use windows driver
+        _putenv("SDL_VIDEODRIVER=windows");
+        printf("Set SDL_VIDEODRIVER environment variable to 'windows'\n");
+        if (!SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "windows")) {
+            printf("Warning: Failed to set video driver hint to 'windows'\n");
+        } else {
+            printf("Successfully set video driver hint to 'windows'\n");
+        }
+        #elif defined(__linux__)
+        // Linux: use x11 driver (or let SDL auto-detect)
+        setenv("SDL_VIDEODRIVER", "x11", 1);
+        printf("Set SDL_VIDEODRIVER environment variable to 'x11'\n");
+        if (!SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11")) {
+            printf("Warning: Failed to set video driver hint to 'x11'\n");
+        } else {
+            printf("Successfully set video driver hint to 'x11'\n");
+        }
+        #else
+        // Other platforms: let SDL auto-detect the best driver
+        printf("Using SDL auto-detection for video driver\n");
+        #endif
+        
+        // Try to initialize SDL with video subsystem
         if (SDL_Init(SDL_INIT_VIDEO) < 0) {
             fprintf(stderr, "SDL_Init failed: %s\n", SDL_GetError());
             return 1;
@@ -88,8 +121,10 @@ int main(int argc, char *argv[]) {
             int mouse_pressed = 0;
             int quit = 0;
             int circle_placed = 0;
-            Circle sun = {180, 100, 30}; // C-style struct initialization
-            Circle earth = {600, 350, 50}; // C-style struct initialization
+            struct Circle sun(180, 100, 30); // Constructor initialization
+            struct Circle earth(600, 350, 50); // Constructor initialization
+            struct Ray rays[RAY_COUNT]; // Initialize array to zero
+            generateRays(sun, rays); // Generate rays for the sun
 
             SDL_Surface* surface = SDL_GetWindowSurface(window);
             while (!quit) {
@@ -100,10 +135,14 @@ int main(int argc, char *argv[]) {
                     }
                     else if (e.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
                         if (e.button.button == SDL_BUTTON_LEFT) {
-                            bool grabSun = pow(e.button.x - sun.x, 2) + pow(e.button.y - sun.y, 2) <= pow(sun.r, 2);
+                            double dx = e.button.x - sun.x;
+                            double dy = e.button.y - sun.y;
+                            double distance_squared = dx * dx + dy * dy;
+                            double radius_squared = sun.r * sun.r;
+                            bool grabSun = distance_squared <= radius_squared;
                             // Only grab the sun if the click is within its radius
                             if (grabSun) {
-                                printf("Grabbed sun at (%f, %f)\n", e.button.x, e.button.y);
+                                printf("Grabbed sun at (%f, %f)\n", (double)e.button.x, (double)e.button.y);
                                 mouse_pressed = 1;
                                 circle_placed = 1;
                                 sun.x = e.button.x;
