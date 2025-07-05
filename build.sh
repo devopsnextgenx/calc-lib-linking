@@ -8,7 +8,10 @@ options=(
     ["static"]="BUILD_STATIC"
     ["test"]="TEST"
     ["release"]="BUILD_RELEASE"
+    ["help"]="HELP"
 )
+
+
 
 BUILD_CALC_LIB=OFF
 BUILD_GRAPHICS_LIB=OFF
@@ -22,8 +25,20 @@ for arg in "$@"; do
     if [[ -n "${options[$arg]}" ]]; then
         declare "${options[$arg]}"=ON
     fi
-
 done
+
+if [[ "$HELP" == "ON" ]]; then
+    echo "Usage: $0 [exe] [calc] [graphics] [static] [test] [release] [help]"
+    echo "Options:"
+    echo "  exe        Build the executable"
+    echo "  calc       Build the calc library"
+    echo "  graphics   Build the graphics library"
+    echo "  static     Build static libraries, if not specified, shared libraries will be built"
+    echo "  test       Run tests after building"
+    echo "  release    Build in release mode, if not specified, debug mode will be used"
+    echo "  help       Show this help message"
+    exit 0
+fi
 
 if [ "$BUILD_STATIC" == "ON" ]; then
     BUILD_SHARED=OFF
