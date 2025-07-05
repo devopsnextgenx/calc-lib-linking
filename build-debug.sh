@@ -1,24 +1,33 @@
 #!/bin/bash
 
+declare -A options
+options=(
+    ["exe"]="BUILD_EXE"
+    ["calc"]="BUILD_CALC_LIB"
+    ["graphics"]="BUILD_GRAPHICS_LIB"
+    ["static"]="BUILD_STATIC"
+    ["test"]="TEST"
+)
+
+BUILD_CALC_LIB=OFF
+BUILD_GRAPHICS_LIB=OFF
 BUILD_LIB=OFF
 BUILD_EXE=OFF
+BUILD_SHARED=OFF
+TEST=OFF
 
-if [ "$1" == "exe" ]; then
-    BUILD_EXE=ON
-elif [ "$1" == "lib" ]; then
-    BUILD_LIB=ON
-fi
+# loop through the arguments and set the corresponding variables
+for arg in "$@"; do
+    if [[ -n "${options[$arg]}" ]]; then
+        declare "${options[$arg]}"=ON
+    fi
 
-if [ "$2" == "exe" ]; then
-    BUILD_EXE=ON
-elif [ "$2" == "lib" ]; then
-    BUILD_LIB=ON
-fi
+done
 
-BUILD_CALC_SHARED=OFF
-
-if [ "$3" == "shared" ]; then
-    BUILD_CALC_SHARED=ON
+if [ "$BUILD_STATIC" == "ON" ]; then
+    BUILD_SHARED=OFF
+else
+    BUILD_SHARED=ON
 fi
 
 BUILD_TYPE="Debug"
@@ -32,21 +41,38 @@ rm -rf "$BUILD_DIR/CMakeFiles"
 cd "$BUILD_DIR"
 
 # Use the absolute path to the project root as the source directory
-cmake ../.. -DBUILD_CALC_LIB=$BUILD_LIB -DBUILD_CALCX_EXE=$BUILD_EXE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_CALC_SHARED=$BUILD_CALC_SHARED
+echo "cmake ../.. -DBUILD_CALC_LIB=$BUILD_CALC_LIB -DBUILD_GRAPHICS_LIB=$BUILD_GRAPHICS_LIB -DBUILD_CALCX_EXE=$BUILD_EXE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_SHARED=$BUILD_SHARED"
+cmake ../.. -DBUILD_CALC_LIB=$BUILD_CALC_LIB -DBUILD_GRAPHICS_LIB=$BUILD_GRAPHICS_LIB -DBUILD_CALCX_EXE=$BUILD_EXE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_SHARED=$BUILD_SHARED
 echo "-------------------------------------------"
 cmake --build .
 echo "-------------------------------------------"
 
 cd ../..
 CALCX="build/$BUILD_TYPE/calcx"
-if [ -f "$CALCX" ]; then
+
+if [[ -f "$CALCX" && "$BUILD_EXE" == "ON" && "$TEST" == "ON" ]]; then
     echo "Running $CALCX"
-    "$CALCX"
+    if [[ "$BUILD_GRAPHICS_LIB" == "ON" ]]; then
+        echo "-------------------------------------------"
+        "$CALCX" --graphics
+        echo "-----------------xxx-----------------------"
+    fi
+    if [[ "$BUILD_CALC_LIB" == "ON" ]]; then
+        echo "-------------------------------------------"
+        "$CALCX" --calc
+        echo "-----------------xxx-----------------------"
+    fi
     echo "-------------------------------------------"
+    "$CALCX" --version
+    echo "-----------------xxx-----------------------"
     ls -ltr "$CALCX"
     echo "-------------------------------------------"
     echo "Executable $CALCX executed successfully."
     echo "Build and execution completed successfully."
 else
-    echo "Executable $CALCX not found. Build may have failed."
+    if [[ "$BUILD_EXE" == "ON" && "$TEST" == "ON" ]]; then
+        echo "Build failed or executable not found."
+    else
+        echo "Executable $CALCX not built. Skipping execution."
+    fi
 fi
