@@ -72,6 +72,7 @@ int main(int argc, char *argv[]) {
             return 1;
         } else {
             printf("SDL_CreateWindow succeeded\n");
+            getchar(); // Wait for user input before closing
         }
         
         // SDL_Surface* surface = SDL_GetWindowSurface(window);
