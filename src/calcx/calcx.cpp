@@ -82,30 +82,58 @@ int main(int argc, char *argv[]) {
             return 1;
         } else {
             printf("SDL_CreateWindow succeeded\n");
+
             SDL_Event e;
+            int mouse_pressed = 0;
             int quit = 0;
+            int circle_placed = 0;
+            Circle circle = {320, 240, 60}; // C-style struct initialization
+
+            SDL_Surface* surface = SDL_GetWindowSurface(window);
             while (!quit) {
                 while (SDL_PollEvent(&e)) {
                     if (e.type == SDL_EVENT_QUIT) {
                         printf("Quit event received\n");
                         quit = 1;
                     }
+                    else if (e.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
+                        if (e.button.button == SDL_BUTTON_LEFT) {
+                            mouse_pressed = 1;
+                            circle_placed = 1;
+                            circle.x = e.button.x;
+                            circle.y = e.button.y;
+                            printf("Circle placed at (%f, %f)\n", circle.x, circle.y);
+                        }
+                    }
+                    else if (e.type == SDL_EVENT_MOUSE_BUTTON_UP) {
+                        if (e.button.button == SDL_BUTTON_LEFT) {
+                            mouse_pressed = 0;
+                            printf("Mouse released\n");
+                        }
+                    }
+                    else if (e.type == SDL_EVENT_MOUSE_MOTION) {
+                        if (mouse_pressed && circle_placed) {
+                            circle.x = e.motion.x;
+                            circle.y = e.motion.y;
+                            // Uncomment for verbose mouse tracking
+                            // printf("Circle moved to (%f, %f)\n", circle.x, circle.y);
+                        }
+                    }
+                }
+                if (surface) {
+                    Uint32 black = 0x00000000; // Black color
+                    SDL_FillSurfaceRect(surface, NULL, black);
+                    Uint32 color = 0xffffffff; // Red color
+                    drawCircle(surface, circle, color);
+                    SDL_UpdateWindowSurface(window);
+                } else {
+                    fprintf(stderr, "Failed to get window surface: %s\n", SDL_GetError());
                 }
                 // Render here if needed
                 SDL_Delay(16); // ~60 FPS
             }
         }
         
-        // SDL_Surface* surface = SDL_GetWindowSurface(window);
-        // if (surface) {
-        //     Circle circle = {320, 240, 100}; // C-style struct initialization
-        //     Uint32 color = SDL_MapRGB(surface->format, 255, 0, 0); // Red color
-        //     drawCircle(&surface, circle, color);
-        //     SDL_UpdateWindowSurface(window);
-        //     SDL_Delay(5000); // Show for 5 seconds
-        // } else {
-        //     fprintf(stderr, "Failed to get window surface: %s\n", SDL_GetError());
-        // }
         
         SDL_DestroyWindow(window);
         SDL_Quit();
