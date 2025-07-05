@@ -73,8 +73,10 @@ if [[ -f "$CALCX" && "$BUILD_EXE" == "ON" && "$TEST" == "ON" ]]; then
     echo "Running $CALCX"
     if [[ "$BUILD_GRAPHICS_LIB" == "ON" ]]; then
         echo "-------------------------------------------"
+        export SDL_VIDEODRIVER=x11
         "$CALCX" --graphics
         echo "-----------------xxx-----------------------"
+        unset SDL_VIDEODRIVER
     fi
     if [[ "$BUILD_CALC_LIB" == "ON" ]]; then
         echo "-------------------------------------------"

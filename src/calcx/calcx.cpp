@@ -60,19 +60,40 @@ int main(int argc, char *argv[]) {
         return 0;
     }
     if (argc > 1 && strcmp(argv[1], "--graphics") == 0) {
+        SDL_ClearError();
+        printf("Initializing SDL for graphics...\n");
         if (SDL_Init(SDL_INIT_VIDEO) < 0) {
             fprintf(stderr, "SDL_Init failed: %s\n", SDL_GetError());
             return 1;
         }
-        
-        SDL_Window* window = SDL_CreateWindow("CalcX::Graphics", WIDTH, HEIGHT, 0);
-        if (!window) {
+        int num_drivers = SDL_GetNumVideoDrivers();
+        printf("Available video drivers: %d\n", num_drivers);
+        for (int i = 0; i < num_drivers; i++) {
+            printf("  - %s\n", SDL_GetVideoDriver(i));
+        }
+
+        const char* current_driver = SDL_GetCurrentVideoDriver();
+        printf("Current video driver: %s\n", current_driver ? current_driver : "None");
+    
+        SDL_Window* window = SDL_CreateWindow("CalcX::Graphics", WIDTH, HEIGHT, SDL_WINDOW_RESIZABLE);
+        if (window == NULL) {
             fprintf(stderr, "SDL_CreateWindow failed: %s\n", SDL_GetError());
             SDL_Quit();
             return 1;
         } else {
             printf("SDL_CreateWindow succeeded\n");
-            getchar(); // Wait for user input before closing
+            SDL_Event e;
+            int quit = 0;
+            while (!quit) {
+                while (SDL_PollEvent(&e)) {
+                    if (e.type == SDL_EVENT_QUIT) {
+                        printf("Quit event received\n");
+                        quit = 1;
+                    }
+                }
+                // Render here if needed
+                SDL_Delay(16); // ~60 FPS
+            }
         }
         
         // SDL_Surface* surface = SDL_GetWindowSurface(window);
