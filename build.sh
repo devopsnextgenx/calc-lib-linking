@@ -7,6 +7,7 @@ options=(
     ["graphics"]="BUILD_GRAPHICS_LIB"
     ["static"]="BUILD_STATIC"
     ["test"]="TEST"
+    ["release"]="BUILD_RELEASE"
 )
 
 BUILD_CALC_LIB=OFF
@@ -30,7 +31,10 @@ else
     BUILD_SHARED=ON
 fi
 
-BUILD_TYPE="Release"
+BUILD_TYPE="Debug"
+if [[ "$BUILD_RELEASE" == "ON" ]]; then
+    BUILD_TYPE="Release"
+fi
 BUILD_DIR="build/$BUILD_TYPE"
 mkdir -p "$BUILD_DIR"
 
