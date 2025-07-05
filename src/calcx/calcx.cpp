@@ -129,6 +129,7 @@ int main(int argc, char *argv[]) {
                     Uint32 color = 0xffffffff; // Red color
                     drawCircle(surface, sun, color);
                     drawCircle(surface, earth, color);
+                    drawSunrays(surface, sun, rays); // Green rays
                     SDL_UpdateWindowSurface(window);
                 } else {
                     fprintf(stderr, "Failed to get window surface: %s\n", SDL_GetError());
