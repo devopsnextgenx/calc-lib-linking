@@ -72,6 +72,7 @@ OSX=$(uname -s)
 CALCX="build/$BUILD_TYPE/calcx"
 if [[ "$OSX" != "Linux" ]]; then
     CALCX="build/$BUILD_TYPE/Debug/calcx.exe"
+    cp libraries/SDL3.dll build/$BUILD_TYPE/Debug/SDL3.dll
 fi
 
 if [[ -f "$CALCX" && "$BUILD_EXE" == "ON" && "$TEST" == "ON" ]]; then
