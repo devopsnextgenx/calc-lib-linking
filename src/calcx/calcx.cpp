@@ -1,11 +1,12 @@
 #include<stdio.h>
+#include<math.h>
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_surface.h>
 #include "calc/calc.h"
 #include "graphics/graphics.h"
-#include <SDL3/SDL_surface.h>
-#include <SDL3/SDL.h>
 
-#define WIDTH 640
-#define HEIGHT 480
+#define WIDTH 900
+#define HEIGHT 720
 
 using namespace graphics;
 using namespace calc;
@@ -87,7 +88,8 @@ int main(int argc, char *argv[]) {
             int mouse_pressed = 0;
             int quit = 0;
             int circle_placed = 0;
-            Circle circle = {600, 400, 60}; // C-style struct initialization
+            Circle sun = {180, 100, 30}; // C-style struct initialization
+            Circle earth = {600, 350, 50}; // C-style struct initialization
 
             SDL_Surface* surface = SDL_GetWindowSurface(window);
             while (!quit) {
@@ -98,25 +100,26 @@ int main(int argc, char *argv[]) {
                     }
                     else if (e.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
                         if (e.button.button == SDL_BUTTON_LEFT) {
-                            mouse_pressed = 1;
-                            circle_placed = 1;
-                            circle.x = e.button.x;
-                            circle.y = e.button.y;
-                            printf("Circle placed at (%f, %f)\n", circle.x, circle.y);
+                            bool grabSun = pow(e.button.x - sun.x, 2) + pow(e.button.y - sun.y, 2) <= pow(sun.r, 2);
+                            // Only grab the sun if the click is within its radius
+                            if (grabSun) {
+                                printf("Grabbed sun at (%f, %f)\n", e.button.x, e.button.y);
+                                mouse_pressed = 1;
+                                circle_placed = 1;
+                                sun.x = e.button.x;
+                                sun.y = e.button.y;
+                            }
                         }
                     }
                     else if (e.type == SDL_EVENT_MOUSE_BUTTON_UP) {
                         if (e.button.button == SDL_BUTTON_LEFT) {
                             mouse_pressed = 0;
-                            printf("Mouse released\n");
                         }
                     }
                     else if (e.type == SDL_EVENT_MOUSE_MOTION) {
                         if (mouse_pressed && circle_placed) {
-                            circle.x = e.motion.x;
-                            circle.y = e.motion.y;
-                            // Uncomment for verbose mouse tracking
-                            // printf("Circle moved to (%f, %f)\n", circle.x, circle.y);
+                            sun.x = e.motion.x;
+                            sun.y = e.motion.y;
                         }
                     }
                 }
@@ -124,7 +127,8 @@ int main(int argc, char *argv[]) {
                     Uint32 black = 0x00000000; // Black color
                     SDL_FillSurfaceRect(surface, NULL, black);
                     Uint32 color = 0xffffffff; // Red color
-                    drawCircle(surface, circle, color);
+                    drawCircle(surface, sun, color);
+                    drawCircle(surface, earth, color);
                     SDL_UpdateWindowSurface(window);
                 } else {
                     fprintf(stderr, "Failed to get window surface: %s\n", SDL_GetError());
