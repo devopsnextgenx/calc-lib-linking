@@ -1,7 +1,7 @@
 #include<math.h>
 #include<SDL3/SDL.h>
 #include "graphics/graphics.h"
-
+// https://www.youtube.com/watch?v=2BLRLuczykM
 namespace graphics {
     void drawCircle(SDL_Surface* surface, Circle circle, Uint32 color) {
         double xc = circle.x;
