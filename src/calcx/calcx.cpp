@@ -17,6 +17,12 @@
 #define WIDTH 900
 #define HEIGHT 720
 
+#define BLACK 0x00000000
+#define SUN_COLOR 0xFF007FFF // Sun color yellow (ARGB format: 0xAARRGGBB)
+#define EARTH_COLOR 0x0000FF00 // Earth color blue (ARGB format: 0xAARRGGBB)
+#define MOON_COLOR 0xFFB2B2B2 // Moon color ash gray
+#define RAY_COLOR 0xFF4D4D66 // Ray color (ARGB format: 0xAARRGGBB)
+
 using namespace graphics;
 using namespace calc;
 
@@ -125,21 +131,17 @@ int main(int argc, char *argv[]) {
             int mouse_pressed = 0;
             int quit = 0;
             int circle_placed = 0;
-            struct Circle sun(180, 100, 30); // Constructor initialization
-            struct Circle earth(600, 350, 50); // Constructor initialization
-            struct Circle moon(450, 400, 15); // Constructor initialization
+            struct Circle sun(180, 100, 60); // Constructor initialization
+            struct Circle earth(600, 350, 20); // Constructor initialization
+            struct Circle moon(450, 400, 8); // Constructor initialization
             struct Ray rays[RAY_COUNT]; // Initialize array to zero
             
             // Moon orbital parameters
-            double moon_orbit_radius = 160.0; // Distance from earth center
+            double planet_angular_speed = 0.025; // Radians per frame (orbital speed)
+            double moon_orbit_radius = 70.0; // Distance from earth center
             double moon_angle = 0.0; // Current orbital angle in radians
-            double moon_angular_speed = 0.025; // Radians per frame (orbital speed)
-            Uint32 sun_color = 0xFF007FFF; // Sun color yellow (ARGB format: 0xAARRGGBB)
-            Uint32 earth_color = 0x0000FF00; // Earth color blue (ARGB format: 0xAARRGGBB)
-            // moon color is a shade of ash gray
-            Uint32 moon_color = 0xFFB2B2B2; // Moon color ash gray (ARGB format: 0xAARRGGBB)
-            // Ray color red 10%, green 15%, blue 75%
-            Uint32 ray_color = 0xFF4D4D66; // Ray color (ARGB format: 0xAARRGGBB)
+            double earth_angle = 0.0; // Current angle of earth in radians
+            double earth_orbit_radius = 420.0; // Distance from sun center
             generateRays(sun, rays); // Generate rays for the sun
 
             SDL_Surface* surface = SDL_GetWindowSurface(window);
@@ -149,6 +151,14 @@ int main(int argc, char *argv[]) {
                     if (e.type == SDL_EVENT_QUIT) {
                         printf("Quit event received\n");
                         quit = 1;
+                    }
+                    else if (e.type == SDL_EVENT_WINDOW_RESIZED) {
+                        printf("Window resized to %dx%d\n", e.window.data1, e.window.data2);
+                        // Re-acquire surface after resize
+                        surface = SDL_GetWindowSurface(window);
+                        if (!surface) {
+                            fprintf(stderr, "Failed to get window surface after resize: %s\n", SDL_GetError());
+                        }
                     }
                     else if (e.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
                         if (e.button.button == SDL_BUTTON_LEFT) {
@@ -185,21 +195,28 @@ int main(int argc, char *argv[]) {
                 }
                 
                 // Update moon orbital position around earth
-                moon_angle += moon_angular_speed;
+                moon_angle += planet_angular_speed;
                 if (moon_angle >= 2 * M_PI) {
                     moon_angle -= 2 * M_PI; // Keep angle in range [0, 2π)
                 }
                 moon.x = earth.x + moon_orbit_radius * cos(moon_angle);
                 moon.y = earth.y + moon_orbit_radius * sin(moon_angle);
                 
+                earth_angle += planet_angular_speed/12;
+                if (earth_angle >= 2 * M_PI) {
+                    earth_angle -= 2 * M_PI; // Keep angle in range [0, 2π)
+                }
+                earth.x = sun.x + earth_orbit_radius * cos(earth_angle);
+                earth.y = sun.y + earth_orbit_radius * sin(earth_angle);
+
+                planets[0] = earth; // Update earth position
                 planets[1] = moon; // Update moon position
                 if (surface) {
-                    Uint32 black = 0x00000000; // Black color
-                    SDL_FillSurfaceRect(surface, NULL, black);
-                    drawSunrays(surface, sun, rays, ray_color, planets);
-                    drawCircle(surface, sun, sun_color);
+                    SDL_FillSurfaceRect(surface, NULL, BLACK);
+                    drawSunrays(surface, sun, rays, RAY_COLOR, planets);
+                    drawCircle(surface, sun, SUN_COLOR);
                     for (int i = 0; i < PLANET_COUNT; i++) {
-                        drawCircle(surface, planets[i], (i == 0) ? earth_color : moon_color);
+                        drawCircle(surface, planets[i], (i == 0) ? EARTH_COLOR : MOON_COLOR);
                     }
                     SDL_UpdateWindowSurface(window);
                 } else {
