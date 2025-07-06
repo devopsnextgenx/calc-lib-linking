@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
         #endif
         
         // Try to initialize SDL with video subsystem
-        if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        if (!SDL_Init(SDL_INIT_VIDEO)) {
             fprintf(stderr, "SDL_Init failed: %s\n", SDL_GetError());
             return 1;
         }
@@ -125,11 +125,12 @@ int main(int argc, char *argv[]) {
             struct Circle earth(600, 350, 50); // Constructor initialization
             struct Circle moon(450, 400, 15); // Constructor initialization
             struct Ray rays[RAY_COUNT]; // Initialize array to zero
-            Uint32 sun_color = 0x000000ff; // Sun color yellow (ARGB format: 0xAARRGGBB)
-            Uint32 earth_color = 0x0000ff00; // Earth color blue (ARGB format: 0xAARRGGBB)
-            Uint32 moon_color = 0x0000ff22; // Earth color blue (ARGB format: 0xAARRGGBB)
-            // Ray color yellow (ARGB format: 0xAARRGGBB)
-            Uint32 ray_color = 15792895; // Yellow color for rays (ARGB format: 0xAARRGGBB)
+            Uint32 sun_color = 0xFF007FFF; // Sun color yellow (ARGB format: 0xAARRGGBB)
+            Uint32 earth_color = 0x0000FF00; // Earth color blue (ARGB format: 0xAARRGGBB)
+            // moon color is a shade of ash gray
+            Uint32 moon_color = 0xFFB2B2B2; // Moon color ash gray (ARGB format: 0xAARRGGBB)
+            // Ray color red 10%, green 15%, blue 75%
+            Uint32 ray_color = 0xFF4D4D66; // Ray color (ARGB format: 0xAARRGGBB)
             generateRays(sun, rays); // Generate rays for the sun
 
             SDL_Surface* surface = SDL_GetWindowSurface(window);
@@ -176,10 +177,10 @@ int main(int argc, char *argv[]) {
                 if (surface) {
                     Uint32 black = 0x00000000; // Black color
                     SDL_FillSurfaceRect(surface, NULL, black);
+                    drawSunrays(surface, sun, rays, ray_color, planets);
                     drawCircle(surface, sun, sun_color);
                     drawCircle(surface, earth, earth_color);
                     drawCircle(surface, moon, moon_color);
-                    drawSunrays(surface, sun, rays, ray_color, planets); // Green rays
                     SDL_UpdateWindowSurface(window);
                 } else {
                     fprintf(stderr, "Failed to get window surface: %s\n", SDL_GetError());
