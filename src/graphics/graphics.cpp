@@ -62,7 +62,7 @@ namespace graphics {
                     is_outside_window = true; // Ray is outside the window
                 }
 
-
+                // Check if the ray intersects with any planet
                 for (int j = 0; j < PLANET_COUNT; j++) {
                     struct Circle planet = planets[j];
                     double dx = xc - planet.x;
