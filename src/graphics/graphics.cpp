@@ -61,6 +61,8 @@ namespace graphics {
                 if (xc < 0 || xc >= surface->w || yc < 0 || yc >= surface->h) {
                     is_outside_window = true; // Ray is outside the window
                 }
+
+
                 for (int j = 0; j < PLANET_COUNT; j++) {
                     struct Circle planet = planets[j];
                     double dx = xc - planet.x;
