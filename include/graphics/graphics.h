@@ -13,7 +13,7 @@
     #define GRAPHICS_API
 #endif
 
-#define RAY_COUNT 100
+#define RAY_COUNT 180
 #define PLANET_COUNT 2
 
 namespace graphics {

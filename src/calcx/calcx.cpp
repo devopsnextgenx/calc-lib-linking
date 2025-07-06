@@ -10,6 +10,10 @@
 #include "calc/calc.h"
 #include "graphics/graphics.h"
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 #define WIDTH 900
 #define HEIGHT 720
 
@@ -125,6 +129,11 @@ int main(int argc, char *argv[]) {
             struct Circle earth(600, 350, 50); // Constructor initialization
             struct Circle moon(450, 400, 15); // Constructor initialization
             struct Ray rays[RAY_COUNT]; // Initialize array to zero
+            
+            // Moon orbital parameters
+            double moon_orbit_radius = 160.0; // Distance from earth center
+            double moon_angle = 0.0; // Current orbital angle in radians
+            double moon_angular_speed = 0.025; // Radians per frame (orbital speed)
             Uint32 sun_color = 0xFF007FFF; // Sun color yellow (ARGB format: 0xAARRGGBB)
             Uint32 earth_color = 0x0000FF00; // Earth color blue (ARGB format: 0xAARRGGBB)
             // moon color is a shade of ash gray
@@ -174,13 +183,24 @@ int main(int argc, char *argv[]) {
                         }
                     }
                 }
+                
+                // Update moon orbital position around earth
+                moon_angle += moon_angular_speed;
+                if (moon_angle >= 2 * M_PI) {
+                    moon_angle -= 2 * M_PI; // Keep angle in range [0, 2π)
+                }
+                moon.x = earth.x + moon_orbit_radius * cos(moon_angle);
+                moon.y = earth.y + moon_orbit_radius * sin(moon_angle);
+                
+                planets[1] = moon; // Update moon position
                 if (surface) {
                     Uint32 black = 0x00000000; // Black color
                     SDL_FillSurfaceRect(surface, NULL, black);
                     drawSunrays(surface, sun, rays, ray_color, planets);
                     drawCircle(surface, sun, sun_color);
-                    drawCircle(surface, earth, earth_color);
-                    drawCircle(surface, moon, moon_color);
+                    for (int i = 0; i < PLANET_COUNT; i++) {
+                        drawCircle(surface, planets[i], (i == 0) ? earth_color : moon_color);
+                    }
                     SDL_UpdateWindowSurface(window);
                 } else {
                     fprintf(stderr, "Failed to get window surface: %s\n", SDL_GetError());
