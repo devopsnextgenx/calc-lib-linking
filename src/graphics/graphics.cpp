@@ -37,25 +37,24 @@ namespace graphics {
         }
     }
 
-    void drawSunrays(SDL_Surface* surface, struct Circle sun, struct Ray rays[RAY_COUNT]) {
-        // Yellow color
-        Uint32 color = 0xffff00ff; // ARGB format: 0xAARRGGBB
-        double xc = sun.x;
-        double yc = sun.y;
-        bool is_outside_window = false;
-        bool is_blocked = false;
+    void drawSunrays(SDL_Surface* surface, struct Circle sun, struct Ray rays[RAY_COUNT], Uint32 color) {
         for (int i = 0; i < RAY_COUNT; i++) {
-            Ray* ray = &rays[i];
-            // while (ray->a < 360) {
-            //     double angle = ray->a; // Convert angle to radians
-            //     xc += cos(angle) * sun.r; // Calculate end point of the ray
-            //     yc += sin(angle) * sun.r; // Calculate end point of the ray
-            //     ray++;
-
-            //     if (is_outside_window || is_blocked) {
-            //         break;
-            //     }
-            // }
+            struct Ray ray = rays[i];
+            bool is_outside_window = false;
+            bool is_blocked = false;
+            int step = 1; // Step size for ray length
+            double xc = ray.x;
+            double yc = ray.y;
+            while (!is_outside_window && !is_blocked) {
+                double angle = ray.a; // Convert angle to radians
+                xc += cos(angle) * step; // Calculate end point of the ray
+                yc += sin(angle) * step; // Calculate end point of the ray
+                SDL_Rect pixel = {(int)xc, (int)yc, 1, 1};
+                SDL_FillSurfaceRect(surface, &pixel, color); // Draw the ray
+                if (xc < 0 || xc >= surface->w || yc < 0 || yc >= surface->h) {
+                    is_outside_window = true; // Ray is outside the window
+                }
+            }
         }
     }
 }
