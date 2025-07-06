@@ -123,14 +123,17 @@ int main(int argc, char *argv[]) {
             int circle_placed = 0;
             struct Circle sun(180, 100, 30); // Constructor initialization
             struct Circle earth(600, 350, 50); // Constructor initialization
+            struct Circle moon(450, 400, 15); // Constructor initialization
             struct Ray rays[RAY_COUNT]; // Initialize array to zero
             Uint32 sun_color = 0x000000ff; // Sun color yellow (ARGB format: 0xAARRGGBB)
             Uint32 earth_color = 0x0000ff00; // Earth color blue (ARGB format: 0xAARRGGBB)
+            Uint32 moon_color = 0x0000ff22; // Earth color blue (ARGB format: 0xAARRGGBB)
             // Ray color yellow (ARGB format: 0xAARRGGBB)
             Uint32 ray_color = 15792895; // Yellow color for rays (ARGB format: 0xAARRGGBB)
             generateRays(sun, rays); // Generate rays for the sun
 
             SDL_Surface* surface = SDL_GetWindowSurface(window);
+            struct Circle planets[PLANET_COUNT] = {earth, moon}; // Array of planets
             while (!quit) {
                 while (SDL_PollEvent(&e)) {
                     if (e.type == SDL_EVENT_QUIT) {
@@ -175,13 +178,14 @@ int main(int argc, char *argv[]) {
                     SDL_FillSurfaceRect(surface, NULL, black);
                     drawCircle(surface, sun, sun_color);
                     drawCircle(surface, earth, earth_color);
-                    drawSunrays(surface, sun, rays, ray_color); // Green rays
+                    drawCircle(surface, moon, moon_color);
+                    drawSunrays(surface, sun, rays, ray_color, planets); // Green rays
                     SDL_UpdateWindowSurface(window);
                 } else {
                     fprintf(stderr, "Failed to get window surface: %s\n", SDL_GetError());
                 }
                 // Render here if needed
-                SDL_Delay(16); // ~60 FPS
+                SDL_Delay(20); // ~60 FPS
             }
         }
         

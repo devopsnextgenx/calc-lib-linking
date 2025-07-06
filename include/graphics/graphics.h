@@ -14,6 +14,7 @@
 #endif
 
 #define RAY_COUNT 100
+#define PLANET_COUNT 2
 
 namespace graphics {
     struct Circle {
@@ -26,5 +27,5 @@ namespace graphics {
     };
     GRAPHICS_API void drawCircle(SDL_Surface* surface, struct graphics::Circle circle, Uint32 color);
     GRAPHICS_API void generateRays(struct graphics::Circle sun, struct Ray rays[RAY_COUNT]);
-    GRAPHICS_API void drawSunrays(SDL_Surface* surface, struct graphics::Circle sun, struct Ray rays[RAY_COUNT], Uint32 color);
+    GRAPHICS_API void drawSunrays(SDL_Surface* surface, struct graphics::Circle sun, struct Ray rays[RAY_COUNT], Uint32 color, struct Circle planets[PLANET_COUNT]);
 }

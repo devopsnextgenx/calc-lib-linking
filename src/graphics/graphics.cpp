@@ -14,17 +14,24 @@ namespace graphics {
         double xc = circle.x;
         double yc = circle.y;
         double r = circle.r;
+        
         double rsq = pow(r, 2);
         double x_end = xc + r;
         double y_end = yc + r;
+        int pixel_counter_x = 0;
+        int pixel_counter_y = 0;
         for (double x = xc - r; x <= x_end; x++) {
+            pixel_counter_x++;
+            pixel_counter_y = 0; // Reset y counter for each x
             for (double y = yc - r; y <= y_end; y++) {
+                pixel_counter_y++;
                 if (pow(x - xc, 2) + pow(y - yc, 2) <= rsq) {
                     SDL_Rect pixel = {(int)x, (int)y, 1, 1};
                     SDL_FillSurfaceRect(surface, &pixel, color);
                 }
             }
         }
+        //printf("Circle drawn at (%f, %f) with radius %f, pixels drawn: %d x %d\n", xc, yc, r, pixel_counter_x, pixel_counter_y);
     }
 
     void generateRays(struct Circle sun, struct Ray rays[RAY_COUNT]) {
@@ -37,7 +44,7 @@ namespace graphics {
         }
     }
 
-    void drawSunrays(SDL_Surface* surface, struct Circle sun, struct Ray rays[RAY_COUNT], Uint32 color) {
+    void drawSunrays(SDL_Surface* surface, struct Circle sun, struct Ray rays[RAY_COUNT], Uint32 color, struct Circle planets[PLANET_COUNT]) {
         for (int i = 0; i < RAY_COUNT; i++) {
             struct Ray ray = rays[i];
             bool is_outside_window = false;
@@ -53,6 +60,17 @@ namespace graphics {
                 SDL_FillSurfaceRect(surface, &pixel, color); // Draw the ray
                 if (xc < 0 || xc >= surface->w || yc < 0 || yc >= surface->h) {
                     is_outside_window = true; // Ray is outside the window
+                }
+                for (int j = 0; j < PLANET_COUNT; j++) {
+                    struct Circle planet = planets[j];
+                    double dx = xc - planet.x;
+                    double dy = yc - planet.y;
+                    double distance_squared = dx * dx + dy * dy;
+                    double radius_squared = planet.r * planet.r;
+                    if (distance_squared <= radius_squared) {
+                        is_blocked = true; // Ray is blocked by a planet
+                        break; // No need to check other planets
+                    }
                 }
             }
         }
