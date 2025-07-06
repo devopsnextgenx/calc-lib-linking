@@ -11,8 +11,6 @@ options=(
     ["help"]="HELP"
 )
 
-
-
 BUILD_CALC_LIB=OFF
 BUILD_GRAPHICS_LIB=OFF
 BUILD_LIB=OFF
@@ -40,16 +38,17 @@ if [[ "$HELP" == "ON" ]]; then
     exit 0
 fi
 
+BUILD_TYPE="Debug"
+if [[ "$BUILD_RELEASE" == "ON" ]]; then
+    BUILD_TYPE="Release"
+fi
+
 if [ "$BUILD_STATIC" == "ON" ]; then
     BUILD_SHARED=OFF
 else
     BUILD_SHARED=ON
 fi
 
-BUILD_TYPE="Debug"
-if [[ "$BUILD_RELEASE" == "ON" ]]; then
-    BUILD_TYPE="Release"
-fi
 BUILD_DIR="build/$BUILD_TYPE"
 mkdir -p "$BUILD_DIR"
 
