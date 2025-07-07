@@ -159,6 +159,7 @@ int main(int argc, char *argv[]) {
             double moon_angle = 0.0; // Current orbital angle in radians
             double earth_angle = 0.0; // Current angle of earth in radians
             double earth_orbit_radius = 420.0; // Distance from sun center
+            bool earth_was_dragging = false; // Track if earth was being dragged in previous frame
             graphics::generateRays(*sun, rays); // Generate rays for the sun
 
             SDL_Surface* surface = SDL_GetWindowSurface(window);
@@ -185,6 +186,17 @@ int main(int argc, char *argv[]) {
                 
                 // Update event handler
                 eventHandler.update();
+                
+                // Check if earth just finished being dragged
+                if (earth_was_dragging && !earth->isDragging()) {
+                    // Calculate new orbital radius and angle from current earth position relative to sun
+                    double dx = earth->getX() - sun->getX();
+                    double dy = earth->getY() - sun->getY();
+                    earth_orbit_radius = sqrt(dx * dx + dy * dy);
+                    earth_angle = atan2(dy, dx);
+                    printf("Earth drag ended. New orbital radius: %.2f, angle: %.2f\n", earth_orbit_radius, earth_angle);
+                }
+                earth_was_dragging = earth->isDragging();
                 
                 // Update moon orbital position around earth
                 moon_angle += planet_angular_speed;
