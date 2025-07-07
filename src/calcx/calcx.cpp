@@ -128,13 +128,29 @@ int main(int argc, char *argv[]) {
             printf("SDL_CreateWindow succeeded\n");
 
             SDL_Event e;
-            int mouse_pressed = 0;
             int quit = 0;
-            int circle_placed = 0;
-            ShapeOptions defaultOptions; // Use default shape options
-            Circle sun(180, 100, 60, SUN_COLOR, defaultOptions); // Constructor initialization
-            Circle earth(600, 350, 20, EARTH_COLOR, defaultOptions); // Constructor initialization
-            Circle moon(450, 400, 8, MOON_COLOR, defaultOptions); // Constructor initialization
+            
+            // Create shape manager and event handler
+            ShapeManager shapeManager;
+            EventHandler eventHandler(&shapeManager);
+            
+            // Configure draggable options for shapes
+            ShapeOptions sunOptions;
+            sunOptions.draggable = true;
+            sunOptions.selectable = true;
+            
+            ShapeOptions earthOptions;
+            earthOptions.draggable = true;
+            earthOptions.selectable = true;
+            
+            ShapeOptions moonOptions; // Moon remains non-draggable (orbits earth)
+            moonOptions.draggable = false;
+            moonOptions.selectable = false;
+            
+            // Create shapes using the shape manager
+            auto sun = shapeManager.createCircle(180, 100, 60, SUN_COLOR, sunOptions);
+            auto earth = shapeManager.createCircle(600, 350, 20, EARTH_COLOR, earthOptions);
+            auto moon = shapeManager.createCircle(450, 400, 8, MOON_COLOR, moonOptions);
             struct Ray rays[RAY_COUNT]; // Initialize array to zero
             
             // Moon orbital parameters
@@ -143,10 +159,11 @@ int main(int argc, char *argv[]) {
             double moon_angle = 0.0; // Current orbital angle in radians
             double earth_angle = 0.0; // Current angle of earth in radians
             double earth_orbit_radius = 420.0; // Distance from sun center
-            graphics::generateRays(sun, rays); // Generate rays for the sun
+            graphics::generateRays(*sun, rays); // Generate rays for the sun
 
             SDL_Surface* surface = SDL_GetWindowSurface(window);
-            Circle planets[PLANET_COUNT] = {earth, moon}; // Array of planets
+            // Create array of Circle objects for compatibility with drawRays
+            Circle planets[PLANET_COUNT] = {*earth, *moon}; // Array of planets
             while (!quit) {
                 while (SDL_PollEvent(&e)) {
                     if (e.type == SDL_EVENT_QUIT) {
@@ -160,65 +177,46 @@ int main(int argc, char *argv[]) {
                         if (!surface) {
                             fprintf(stderr, "Failed to get window surface after resize: %s\n", SDL_GetError());
                         }
-                    }
-                    else if (e.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
-                        if (e.button.button == SDL_BUTTON_LEFT) {
-                            double dx = e.button.x - sun.getX();
-                            double dy = e.button.y - sun.getY();
-                            double distance_squared = dx * dx + dy * dy;
-                            double radius_squared = sun.getRadius() * sun.getRadius();
-                            bool grabSun = distance_squared <= radius_squared;
-                            // Only grab the sun if the click is within its radius
-                            if (grabSun) {
-                                printf("Grabbed sun at (%f, %f)\n", (double)e.button.x, (double)e.button.y);
-                                mouse_pressed = 1;
-                                circle_placed = 1;
-                                sun.setPosition(e.button.x, e.button.y);
-                                // Regenerate rays when sun moves
-                                graphics::generateRays(sun, rays);
-                            }
-                        }
-                    }
-                    else if (e.type == SDL_EVENT_MOUSE_BUTTON_UP) {
-                        if (e.button.button == SDL_BUTTON_LEFT) {
-                            mouse_pressed = 0;
-                        }
-                    }
-                    else if (e.type == SDL_EVENT_MOUSE_MOTION) {
-                        if (mouse_pressed && circle_placed) {
-                            sun.setPosition(e.motion.x, e.motion.y);
-                            // Regenerate rays when sun moves
-                            graphics::generateRays(sun, rays);
-                        }
+                    } else {
+                        // Let the event handler manage mouse events for dragging
+                        eventHandler.handleEvent(e);
                     }
                 }
+                
+                // Update event handler
+                eventHandler.update();
                 
                 // Update moon orbital position around earth
                 moon_angle += planet_angular_speed;
                 if (moon_angle >= 2 * M_PI) {
                     moon_angle -= 2 * M_PI; // Keep angle in range [0, 2π)
                 }
-                double newMoonX = earth.getX() + moon_orbit_radius * cos(moon_angle);
-                double newMoonY = earth.getY() + moon_orbit_radius * sin(moon_angle);
-                moon.setPosition(newMoonX, newMoonY);
+                double newMoonX = earth->getX() + moon_orbit_radius * cos(moon_angle);
+                double newMoonY = earth->getY() + moon_orbit_radius * sin(moon_angle);
+                moon->setPosition(newMoonX, newMoonY);
                 
                 earth_angle += planet_angular_speed/12;
                 if (earth_angle >= 2 * M_PI) {
                     earth_angle -= 2 * M_PI; // Keep angle in range [0, 2π)
                 }
-                double newEarthX = sun.getX() + earth_orbit_radius * cos(earth_angle);
-                double newEarthY = sun.getY() + earth_orbit_radius * sin(earth_angle);
-                earth.setPosition(newEarthX, newEarthY);
+                double newEarthX = sun->getX() + earth_orbit_radius * cos(earth_angle);
+                double newEarthY = sun->getY() + earth_orbit_radius * sin(earth_angle);
+                earth->setPosition(newEarthX, newEarthY);
 
-                planets[0] = earth; // Update earth position
-                planets[1] = moon; // Update moon position
+                // Update planets array for ray drawing
+                planets[0] = *earth; // Update earth position
+                planets[1] = *moon; // Update moon position
+                
+                // Regenerate rays when sun moves (in case it was dragged)
+                graphics::generateRays(*sun, rays);
+                
                 if (surface) {
                     SDL_FillSurfaceRect(surface, NULL, BLACK);
-                    graphics::drawRays(surface, sun, rays, RAY_COLOR, planets);
-                    sun.draw(surface);
-                    for (int i = 0; i < PLANET_COUNT; i++) {
-                        planets[i].draw(surface);
-                    }
+                    graphics::drawRays(surface, *sun, rays, RAY_COLOR, planets);
+                    
+                    // Use shape manager to draw all shapes
+                    shapeManager.drawAll(surface);
+                    
                     SDL_UpdateWindowSurface(window);
                 } else {
                     fprintf(stderr, "Failed to get window surface: %s\n", SDL_GetError());
