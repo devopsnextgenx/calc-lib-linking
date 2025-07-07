@@ -195,13 +195,16 @@ int main(int argc, char *argv[]) {
                 double newMoonY = earth->getY() + moon_orbit_radius * sin(moon_angle);
                 moon->setPosition(newMoonX, newMoonY);
                 
-                earth_angle += planet_angular_speed/12;
-                if (earth_angle >= 2 * M_PI) {
-                    earth_angle -= 2 * M_PI; // Keep angle in range [0, 2π)
+                // Only update earth orbital position if earth is not being dragged
+                if (!earth->isDragging()) {
+                    earth_angle += planet_angular_speed/12;
+                    if (earth_angle >= 2 * M_PI) {
+                        earth_angle -= 2 * M_PI; // Keep angle in range [0, 2π)
+                    }
+                    double newEarthX = sun->getX() + earth_orbit_radius * cos(earth_angle);
+                    double newEarthY = sun->getY() + earth_orbit_radius * sin(earth_angle);
+                    earth->setPosition(newEarthX, newEarthY);
                 }
-                double newEarthX = sun->getX() + earth_orbit_radius * cos(earth_angle);
-                double newEarthY = sun->getY() + earth_orbit_radius * sin(earth_angle);
-                earth->setPosition(newEarthX, newEarthY);
 
                 // Update planets array for ray drawing
                 planets[0] = *earth; // Update earth position

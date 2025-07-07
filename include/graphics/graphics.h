@@ -95,6 +95,7 @@ namespace graphics {
         bool isSelectable() const { return selectable_; }
         bool isDraggable() const { return draggable_; }
         bool isClickable() const { return clickable_; }
+        bool isDragging() const { return isDragging_; }
         int getZOrder() const { return zOrder_; }
 
         // Setters
