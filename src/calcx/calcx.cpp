@@ -138,14 +138,32 @@ int main(int argc, char *argv[]) {
             ShapeOptions sunOptions;
             sunOptions.draggable = true;
             sunOptions.selectable = true;
+            sunOptions.clickable = true;
+            sunOptions.onClickAction = [](Shape* shape, const MouseEventData& eventData) {
+                printf("Sun clicked at (%.2f, %.2f)\n", eventData.x, eventData.y);
+                shape->setSelected(!shape->isSelected());
+                shape->setColorHighlight(generateRandomUint32Color());
+            };
             
             ShapeOptions earthOptions;
             earthOptions.draggable = true;
             earthOptions.selectable = true;
+            earthOptions.clickable = true;
+            earthOptions.onClickAction = [](Shape* shape, const MouseEventData& eventData) {
+                printf("Earth clicked at (%.2f, %.2f)\n", eventData.x, eventData.y);
+                shape->setSelected(!shape->isSelected());
+                shape->setColorHighlight(generateRandomUint32Color());
+            };
             
             ShapeOptions moonOptions; // Moon remains non-draggable (orbits earth)
             moonOptions.draggable = false;
             moonOptions.selectable = false;
+            moonOptions.clickable = true;
+            moonOptions.onHoverAction = [](Shape* shape, const MouseEventData& eventData) {
+                printf("Moon clicked at (%.2f, %.2f)\n", eventData.x, eventData.y);
+                shape->setSelected(!shape->isSelected());
+                shape->setColorHighlight(generateRandomUint32Color());
+            };
             
             // Create shapes using the shape manager
             auto sun = shapeManager.createCircle(180, 100, 60, SUN_COLOR, sunOptions);

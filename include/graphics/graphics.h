@@ -22,6 +22,7 @@
 #define PLANET_COUNT 2
 
 namespace graphics {
+    GRAPHICS_API uint32_t generateRandomUint32Color();
     struct Ray {
         // angle in radians
         double x, y, a;
@@ -97,9 +98,10 @@ namespace graphics {
         bool isClickable() const { return clickable_; }
         bool isDragging() const { return isDragging_; }
         int getZOrder() const { return zOrder_; }
-
+        
         // Setters
         void setColor(Uint32 color) { color_ = color; }
+        void setColorHighlight(Uint32 color);
         void setSelected(bool selected) { isSelected_ = selected; }
         void setVisible(bool visible) { visible_ = visible; }
         void setSelectable(bool selectable) { selectable_ = selectable; }
@@ -125,6 +127,7 @@ namespace graphics {
     protected:
         double x_, y_;
         Uint32 color_;
+        Uint32 colorHighlight_;
         bool isSelected_;
         bool visible_;
         bool selectable_;

@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "calc.h": "c",
-        "cmath": "cpp"
+        "cmath": "cpp",
+        "memory": "cpp"
     }
 }

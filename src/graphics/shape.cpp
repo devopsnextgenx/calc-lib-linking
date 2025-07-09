@@ -9,6 +9,34 @@
 
 namespace graphics {
 
+    uint32_t generateRandomUint32Color() {
+        // RAND_MAX is typically at least 32767 (2^15 - 1).
+        // To get a 32-bit number, we need to combine multiple rand() calls.
+        // A common way is to shift and OR, ensuring all 32 bits are covered.
+        // This approach assumes RAND_MAX is at least 32767.
+
+        uint32_t r1 = rand();
+        uint32_t r2 = rand();
+        uint32_t r3 = rand();
+
+        // Combine the random parts to form a 32-bit number.
+        // The exact combination depends on RAND_MAX.
+        // A simple way to get 32 bits if RAND_MAX is 0x7FFF (15 bits) is:
+        // (r1 << 20) | (r2 << 5) | r3
+        // However, a more robust way that covers cases where RAND_MAX is larger
+        // or to ensure full 32-bit coverage is to use bitwise operations carefully.
+
+        // A common and robust way to generate a 32-bit random number
+        // by combining two 16-bit random numbers (assuming RAND_MAX >= 32767)
+        // or three for better distribution if RAND_MAX is small.
+        // For simplicity and assuming RAND_MAX is sufficient (or combining multiple calls):
+        uint32_t random_value = ((uint32_t)rand() << 16) | (uint32_t)rand();
+
+        // If RAND_MAX is less than 65535, you might need more calls:
+        // uint32_t random_value = ((uint32_t)rand() << 24) | ((uint32_t)rand() << 12) | (uint32_t)rand();
+
+        return random_value;
+    }
     //=============================================================================
     // Shape Base Class Implementation
     //=============================================================================
@@ -19,6 +47,12 @@ namespace graphics {
           clickable_(options.clickable), zOrder_(options.zOrder), isDragging_(false),
           onClickAction_(options.onClickAction), onDoubleClickAction_(options.onDoubleClickAction),
           onDragAction_(options.onDragAction), onHoverAction_(options.onHoverAction) {
+            // generate random highlight color if not set
+            if (colorHighlight_ == 0) {
+                // Generate a highlight color by randomizing the alpha channel
+                // randomize even rgb values
+                colorHighlight_ = generateRandomUint32Color();
+            }
     }
 
     void Shape::setPosition(double x, double y) {
@@ -77,6 +111,10 @@ namespace graphics {
         // Default implementation - can be overridden
     }
 
+    void Shape::setColorHighlight(Uint32 color) {
+        colorHighlight_ = color;
+    }
+
     //=============================================================================
     // Circle Class Implementation
     //=============================================================================
@@ -103,7 +141,7 @@ namespace graphics {
                 if ((x - x_) * (x - x_) + (y - y_) * (y - y_) <= rsq) {
                     if (x >= 0 && x < surface->w && y >= 0 && y < surface->h) {
                         SDL_Rect pixel = {(int)x, (int)y, 1, 1};
-                        Uint32 drawColor = isSelected_ ? (color_ | 0xFF000000) : color_; // Highlight selected
+                        Uint32 drawColor = isSelected_ ? (colorHighlight_) : color_; // Highlight selected
                         SDL_FillSurfaceRect(surface, &pixel, drawColor);
                     }
                 }
